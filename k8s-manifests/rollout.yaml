@@ -23,8 +23,8 @@ spec:
     spec:
       containers:
         - name: raffle-service
-          image: sneakertail/raffle-service:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/sneakertail/raffle-service:dev
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3003

@@ -24,4 +24,6 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/sneakertail/raffle-service:dev-${{ github.sha }}
+          tags: |
+            ghcr.io/sneakertail/raffle-service:dev
+            ghcr.io/sneakertail/raffle-service:dev-${{ github.sha }}
