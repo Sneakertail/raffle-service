@@ -7,6 +7,9 @@ on:
 jobs:
   ci-dev:
     uses: Sneakertail/sneakertail-gitops/.github/workflows/service-ci-template.yaml@dev
+    permissions:
+      contents: read
+      packages: write
     with:
       deploy_env: dev
       charts_revision: dev
