@@ -26,7 +26,19 @@ const getRaffleState = async (productId, userId) => {
     };
 };
 
-app.post('/api/raffle/enter', async (req, res) => {
+const withErrorHandling = (handler) => async (req, res) => {
+    try {
+        await handler(req, res);
+    } catch (error) {
+        console.error('Raffle service error:', error);
+        res.status(502).json({
+            error: 'Raffle service unavailable',
+            message: error.message || 'Unexpected raffle service error',
+        });
+    }
+};
+
+app.post('/api/raffle/enter', withErrorHandling(async (req, res) => {
     const { userId, productId } = req.body;
     if (!userId || !productId) return res.status(400).json({ error: 'userId and productId required' });
 
@@ -42,27 +54,27 @@ app.post('/api/raffle/enter', async (req, res) => {
 
     await redisClient.lPush(entryKey(productId), String(userId));
     res.status(200).json({ message: 'Entered raffle queue successfully' });
-});
+}));
 
-app.get('/api/raffle/entries/:productId', async (req, res) => {
+app.get('/api/raffle/entries/:productId', withErrorHandling(async (req, res) => {
     const { productId } = req.params;
     const entries = await redisClient.lRange(entryKey(productId), 0, -1);
     res.json({ productId, entries, count: entries.length });
-});
+}));
 
-app.get('/api/raffle/check/:productId/:userId', async (req, res) => {
+app.get('/api/raffle/check/:productId/:userId', withErrorHandling(async (req, res) => {
     const { productId, userId } = req.params;
     const state = await getRaffleState(productId, userId);
     res.json({ entered: state.entered });
-});
+}));
 
-app.get('/api/raffle/status/:productId/:userId?', async (req, res) => {
+app.get('/api/raffle/status/:productId/:userId?', withErrorHandling(async (req, res) => {
     const { productId, userId } = req.params;
     const state = await getRaffleState(productId, userId);
     res.json(state);
-});
+}));
 
-app.post('/api/raffle/draw/:productId', async (req, res) => {
+app.post('/api/raffle/draw/:productId', withErrorHandling(async (req, res) => {
     const { productId } = req.params;
     const existingWinner = await redisClient.get(winnerKey(productId));
 
@@ -77,12 +89,12 @@ app.post('/api/raffle/draw/:productId', async (req, res) => {
     const winner = entries[Math.floor(Math.random() * entries.length)];
     await redisClient.set(winnerKey(productId), winner);
     res.json({ winnerUserId: winner, totalEntries: entries.length });
-});
+}));
 
-app.get('/api/raffle/winner/:productId', async (req, res) => {
+app.get('/api/raffle/winner/:productId', withErrorHandling(async (req, res) => {
     const { productId } = req.params;
     const winner = await redisClient.get(winnerKey(productId));
     res.json({ productId, winnerUserId: winner });
-});
+}));
 
 app.listen(process.env.PORT || 3003, () => console.log('Raffle service running on port ' + (process.env.PORT || 3003)));
