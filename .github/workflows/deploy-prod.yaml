@@ -1,0 +1,19 @@
+name: deploy-prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Production image tag in v*.*.* format
+        required: true
+        type: string
+
+jobs:
+  deploy-prod:
+    uses: Sneakertail/sneakertail-gitops/.github/workflows/deploy-prod-template.yaml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      release_tag: ${{ inputs.release_tag }}
+    secrets: inherit

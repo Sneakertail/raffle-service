@@ -5,26 +5,14 @@ on:
     branches: [main]
 
 jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
+  ci-main:
+    uses: Sneakertail/sneakertail-gitops/.github/workflows/service-ci-template.yaml@main
     permissions:
       contents: read
       packages: write
-    environment: prod
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push prod image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ghcr.io/sneakertail/raffle-service:main
-            ghcr.io/sneakertail/raffle-service:main-${{ github.sha }}
+    with:
+      deploy_env: prod
+      charts_revision: main
+      deploy_enabled: false
+      image_tag: ${{ github.sha }}
+    secrets: inherit
